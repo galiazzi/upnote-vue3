@@ -2,7 +2,7 @@
 <template>
   <div class="todo">
     <hr />
-    <h4>{{ upper(title) }}</h4>
+    <h4>{{ upper(title || "") }}</h4>
     <Item
       v-for="(item, idx) in lista"
       :key="idx"
@@ -20,39 +20,43 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { ref } from "@vue/reactivity";
 import Item from "./Item.vue";
+import { useTodo } from "../utils/todo";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+function upper(v: string) {
+  return v.toUpperCase();
+}
+
+export default defineComponent({
   name: "Todo",
   components: { Item },
   props: {
     title: String,
   },
-  data() {
+  setup() {
+    const iptTexto = ref<HTMLElement>();
+    const texto = ref("");
+
+    const { lista, add: addTodo, remover } = useTodo();
+
     return {
-      texto: "",
-      lista: [],
+      iptTexto,
+      texto,
+
+      lista,
+      add() {
+        if (addTodo(texto.value)) {
+          texto.value = "";
+          iptTexto.value?.focus();
+        }
+      },
+      remover,
+
+      upper,
     };
   },
-  methods: {
-    add() {
-      if (!this.texto) {
-        return;
-      }
-      this.lista.push({
-        texto: this.texto,
-        ok: false,
-      });
-      this.texto = "";
-      this.$refs.iptTexto.focus();
-    },
-    remover(item) {
-      this.lista.splice(this.lista.indexOf(item), 1);
-    },
-    upper(v) {
-      return v.toUpperCase();
-    },
-  },
-};
+});
 </script>
